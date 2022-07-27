@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.shop.gallery.GalleryMapper">
+	
+	<select id="getMainImgList" resultType="com.spring.shop.gallery.MainGalleryDto">
+		select  
+			board_attach.saved_file_name,
+			gallery_board.gb_num,
+			gallery_board.gb_subject,
+			gallery_board.gb_id 
+		from (
+			select * from board_attach 
+			where file_num 
+			in (select 
+				min(file_num) as file_num
+				from board_attach
+				where board_type='GALLERY'
+				group by board_id
+			) 
+		) as board_attach 
+		full outer join gallery_board 
+		on board_attach.board_id = gallery_board.gb_num
+		<include refid="search" />
+		order by gallery_board.gb_num desc
+		limit #{limit} - #{offset} offset #{offset}
+	</select>
+	
+	<select id="getTotalCnt" resultType="int">
+		select count(*)
+		from (
+			select * from board_attach 
+			where file_num 
+			in (select 
+				min(file_num) as file_num
+				from board_attach
+				where board_type='GALLERY'
+				group by board_id
+			) 
+		) as board_attach 
+		full outer join gallery_board 
+		on board_attach.board_id = gallery_board.gb_num
+		<include refid="search" />
+	</select>
+	
+	<select id="getGalleryList" parameterType="int" resultType="com.spring.shop.gallery.GalleryDto">
+		select 
+			gb_num, 
+			gb_id,
+			gb_subject,
+			TO_CHAR(TO_TIMESTAMP(gb_createdat, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') "gb_createdat"
+		from gallery_board
+		where gb_num=#{gb_num}
+	</select>
+	
+	<insert id="uploadGallery" parameterType="com.spring.shop.gallery.GalleryDto" useGeneratedKeys="true" keyProperty="gb_num">
+		insert into gallery_board (
+			gb_num,
+			gb_id,
+			gb_subject
+		) values (
+			nextval('gb_seq'),
+			#{gb_id},
+			#{gb_subject}
+		)
+	</insert>
+	
+	<update id="editGallery" parameterType="com.spring.shop.gallery.GalleryDto">
+		update gallery_board
+		set gb_subject=#{gb_subject}
+		where gb_num=#{gb_num}
+	</update>
+	
+	<delete id="deleteGallery" parameterType="int">
+		delete from gallery_board
+		where gb_num=#{gb_num}
+	</delete>
+	
+	<sql id="search">
+		<if test="searchType != null or searchType != ''">
+			<where>
+				<choose>
+					<when test="searchType == 'all'">
+						(gallery_board.gb_subject || gallery_board.gb_id) like '%'||#{keyword}||'%'
+					</when>
+					<otherwise>
+						gallery_board.${searchType} like '%'||#{keyword}||'%'
+					</otherwise>
+				</choose>
+			</where>
+		</if>
+	</sql>
+</mapper>

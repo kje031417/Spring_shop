@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.shop.common.FileMapper">
+	
+	<insert id="insertFile" parameterType="com.spring.shop.common.AttachDto">
+		insert into board_attach (
+			board_type,
+			board_id,
+			file_num,
+			file_name,
+			saved_file_name,
+			file_size
+		) values (
+			#{board_type},
+			#{board_id},
+			nextval('seq_file_num'),
+			#{file_name},
+			#{saved_file_name},
+			#{file_size}
+		)
+	</insert>
+
+	<select id="selectFileName" parameterType="com.spring.shop.common.RequestDto" resultType="com.spring.shop.common.AttachDto">
+		select * 
+		from board_attach
+		where board_id=#{board_id} and board_type=#{board_type}
+	</select>
+	
+	<select id="selectFilesName" parameterType="com.spring.shop.common.RequestDto" resultType="com.spring.shop.common.AttachDto">
+		select * 
+		from board_attach
+		where board_id=#{board_id} and board_type=#{board_type}
+	</select>
+	
+	<update id="editFile" parameterType="com.spring.shop.common.AttachDto">
+		update board_attach
+		set 
+		file_name=#{file_name}, 
+		saved_file_name=#{saved_file_name}, 
+		file_size=#{file_size}
+		where board_id=#{board_id} and board_type=#{board_type}
+	</update>
+	
+	<delete id="deleteFile" parameterType="com.spring.shop.common.RequestDto">
+		delete from board_attach
+		where board_id=#{board_id} and board_type=#{board_type}
+	</delete>
+</mapper>

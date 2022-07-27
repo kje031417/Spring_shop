@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.shop.notice.NoticeMapper">
+	<select id="selectList" resultType="com.spring.shop.notice.NoticeDto">
+		select 
+			nb_num, 
+			nb_id,
+			nb_subject,
+			nb_content,
+			TO_CHAR(TO_TIMESTAMP(nb_createdat, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') "nb_createdat"
+		from notice_board
+		<include refid="search" />
+		order by nb_num desc
+		limit #{limit} - #{offset} offset #{offset}
+	</select>
+	
+	<select id="getLastestNotice" resultType="com.spring.shop.notice.NoticeDto">
+		select 
+			nb_num, 
+			nb_id,
+			nb_subject,
+			nb_content,
+			TO_CHAR(TO_TIMESTAMP(nb_createdat, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') "nb_createdat"
+		from notice_board
+		order by nb_num desc
+		limit 1
+	</select>
+	
+	<select id="getTotalCnt" resultType="int">
+		select count(*)
+		from notice_board
+		<include refid="search" />
+	</select>
+
+	<insert id="write" parameterType="com.spring.shop.notice.NoticeDto" useGeneratedKeys="true" keyProperty="nb_num">
+		insert into notice_board (
+			nb_num,
+			nb_id,
+			nb_subject,
+			nb_content
+		) values (
+			nextval('nb_seq'),
+			#{nb_id},
+			#{nb_subject},
+			#{nb_content}
+		)
+	</insert>
+	
+	<select id="selectOne" parameterType="int" resultType="com.spring.shop.notice.NoticeDto">
+		select
+		nb_num,
+		nb_id,
+		nb_subject,
+		nb_content,
+		TO_CHAR(TO_TIMESTAMP(nb_createdat, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS') "nb_createdat"
+		from notice_board
+		where nb_num=#{nb_num}
+	</select>
+
+	<update id="edit" parameterType="com.spring.shop.notice.NoticeDto">
+		update notice_board 
+		set nb_subject=#{nb_subject}, nb_content=#{nb_content}
+		where nb_num=#{nb_num}
+	</update>	
+	
+	<delete id="delete" parameterType="int">
+		delete from notice_board
+		where nb_num=#{nb_num}
+	</delete>
+		
+	<sql id="search">
+		<if test="searchType != null or searchType != ''">
+			<where>
+				<choose>
+					<when test="searchType == 'all'">
+						(nb_subject || nb_id) like '%'||#{keyword}||'%'
+					</when>
+					<otherwise>
+						${searchType} like '%'||#{keyword}||'%' 
+					</otherwise>
+				</choose>
+			</where>
+		</if>
+	</sql>
+</mapper>
